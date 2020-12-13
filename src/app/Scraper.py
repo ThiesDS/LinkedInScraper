@@ -78,6 +78,9 @@ class HashtagScraper(Thread):
 
         except ScrapingException:
             hashtag_feed = None
+        
+        print(hashtag_feed.names)
+        print(hashtag_feed.texts)
 
         return hashtag_feed
 
@@ -112,7 +115,6 @@ class HashtagScraper(Thread):
         for i in range(5):
             names.append(self.browser.execute_script("return document.getElementsByClassName('feed-shared-actor__name') \
                 [" + str(i) + "].children[0].innerText"))
-            print("Process post number: " + str(names))
         return names
 
     def scrape_post_texts(self):
@@ -125,14 +127,12 @@ class HashtagScraper(Thread):
     def load_full_page(self):
         print('LOG: Enter function load_full_page()')
         window_height = self.browser.execute_script("return window.innerHeight")
-        print('LOG: load_full_page: window_height' + str(window_height))
         scrolls = 1
         while scrolls * window_height < self.browser.execute_script("return document.body.offsetHeight"):
             self.browser.execute_script('window.scrollTo(0, ' + str(window_height * scrolls) + ');')
             wait_for_scrolling()
             scrolls += 1
             # DEBUG: Manual break loop (for dev)
-            print('Scroll down number: ' + str(scrolls))
             if scrolls > 5:
                 break
 
