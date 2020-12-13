@@ -27,4 +27,4 @@ RUN useradd -ms /bin/bash Scraper
 USER Scraper
 
 # Run app
-#CMD ["python","main.py"]
+CMD ["python","main.py"]

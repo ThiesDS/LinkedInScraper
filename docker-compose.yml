@@ -10,5 +10,6 @@ services:
         - ./output:/output
     environment:
         - LINKEDIN_EMAIL=${LINKEDIN_EMAIL}
+        - LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD}
     #stdin_open: true # docker run -i
     #tty: true        # docker run -t
