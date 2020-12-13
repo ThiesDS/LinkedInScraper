@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  LinkedInScraper:
+    image: linkedinscraper:v1
+    build:
+      context: ./src
+    volumes:
+        - ./input:/input
+        - ./output:/output
+    environment:
+        - LINKEDIN_EMAIL=${LINKEDIN_EMAIL}
+    #stdin_open: true # docker run -i
+    #tty: true        # docker run -t
