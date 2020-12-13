@@ -4,12 +4,14 @@ import sys
 import time
 import xlsxwriter
 
-from HashtagScraper import HashtagScraper
+from Scraper import HashtagScraper
 
 # Loading of input data (LinkedIn hashtag Urls)
 hashtag_urls = []
 for entry in open('../input/hashtags/urls.txt', "r"):
     hashtag_urls.append(entry.strip())
+
+print(hashtag_urls)
 
 # Warning if hashtags are not provided
 if len(hashtag_urls) == 0:

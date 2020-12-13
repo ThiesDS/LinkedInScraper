@@ -5,11 +5,13 @@ services:
     image: linkedinscraper:v1
     build:
       context: ./src
+    shm_size: '2gb'
     volumes:
         - ./input:/input
         - ./output:/output
     environment:
         - LINKEDIN_EMAIL=${LINKEDIN_EMAIL}
         - LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD}
+    # DEBUGGING: Interactive mode
     #stdin_open: true # docker run -i
     #tty: true        # docker run -t

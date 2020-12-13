@@ -55,6 +55,11 @@ class HashtagScraper(Thread):
                 )
             )
 
+        # DEBUGGING: Write output after scraping
+        output = open("../output/output.txt","w") 
+        output.write('finished.') 
+        output.close()
+
         # Closing the Chrome instance
         self.browser.quit()
 
@@ -107,6 +112,7 @@ class HashtagScraper(Thread):
         for i in range(5):
             names.append(self.browser.execute_script("return document.getElementsByClassName('feed-shared-actor__name') \
                 [" + str(i) + "].children[0].innerText"))
+            print("Process post number: " + str(names))
         return names
 
     def scrape_post_texts(self):
@@ -126,6 +132,7 @@ class HashtagScraper(Thread):
             wait_for_scrolling()
             scrolls += 1
             # DEBUG: Manual break loop (for dev)
+            print('Scroll down number: ' + str(scrolls))
             if scrolls > 5:
                 break
 

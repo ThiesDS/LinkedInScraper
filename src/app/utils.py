@@ -72,14 +72,14 @@ class Profile:
         return dict(name=self.name, email=self.email, skills=self.skills, jobs=self.jobs)
 
 class Posts:
-    def __init__(self, names: [names], texts: [texts]):
+    def __init__(self, names: [str], texts: [str]):
         self.names = names
         self.texts = texts
 
     def make_posts(self):
         posts = []
         for i in range(len(names)):
-            posts.append(Post(id=i,self.names[i],self.texts[i]))
+            posts.append(Post(i,self.names[i],self.texts[i]))
         return posts
 
 class Post:
