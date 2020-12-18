@@ -102,13 +102,25 @@ class HashtagScraper(Thread):
         self.load_full_page()
 
         # SCRAPING
+        post_id = self.scrape_post_id()
         post_names = self.scrape_post_names()
         post_texts = self.scrape_post_texts()
+
+        # Scrape by loop over feed:
+        # HTML class: "feed-hashtag-feed__update-list ember-view" 
+        # 1. Step: Get all post ids (-> Function call)
+        # 2. Step: For each post id, get the post attributes (-> Function call)
 
         return Posts(
             names=post_names,
             texts=post_texts
         )
+
+    def scrape_post_id(self):
+        ids =[]
+        for i in range(5):
+            #ids.append(self.browser.execute_script(""))
+        return ids
 
     def scrape_post_names(self):
         names = []
