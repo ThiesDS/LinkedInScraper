@@ -4,7 +4,7 @@ services:
   LinkedInScraper:
     image: linkedinscraper:v1
     build:
-      context: ./src
+      context: ./scraper
     shm_size: '2gb'
     volumes:
         - ./input:/input
