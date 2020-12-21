@@ -1,8 +1,11 @@
 from threading import Thread
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
+from datetime import datetime
 
 import time
+import json
+import hashlib
 
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -43,22 +46,21 @@ class HashtagScraper(Thread):
         password_input.submit()
 
         if not self.browser.current_url == "https://www.linkedin.com/feed/":
-            print(self.browser.current_url)
             time.sleep(40)
             raise AuthenticationException()
 
         for linkedin_url in self.hashtag_urls:
-            self.results.append(
-                HashtagScrapingResult(
-                    linkedin_url,
-                    self.scrape_hashtag_feed(linkedin_url)
-                )
+            hashtag_feed = self.scrape_hashtag_feed(linkedin_url)
+            scraping_date = datetime.now().strftime('%Y-%m-%d')
+            scraping_results = HashtagScrapingResult(
+                hashtag_url=linkedin_url,
+                scraping_date=scraping_date,
+                hashtag_feed=hashtag_feed,
             )
-
-        # DEBUGGING: Write output after scraping
-        #output = open("../output/output.txt","w") 
-        #output.write('finished.') 
-        #output.close()
+        
+        # Write to json
+        with open('../output/output.txt', 'w') as outfile:
+            json.dump(scraping_results.as_json(), outfile,indent=4)
 
         # Closing the Chrome instance
         self.browser.quit()
@@ -102,6 +104,8 @@ class HashtagScraper(Thread):
         # SCRAPING
         posts = self.scrape_posts()
 
+        #print(posts)
+
         return posts
 
     def scrape_posts(self):
@@ -109,26 +113,43 @@ class HashtagScraper(Thread):
             Scrape each post from hastag feed.
         """
         print("LOG: Enter scrape_posts()")
+        
         # Get number of posts (depending on scroll-depth)
         num_posts = self.browser.execute_script("return document.querySelectorAll('[data-id]').length")
-        print(f"LOG: Number of posts: {num_posts}")
+        
         # Initialize dict
-        posts = []
+        posts = {}
 
         for i in range(0,num_posts):
             try:
-                #print(f"i= {i}")
-                # 1. Get id of post
+                # Get id of post
                 post_id = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getAttribute('data-id')")
-                #print(f"LOG: Post ID: {post_id}")
-                # 2. Get user name of post
+                
+                # Get user name of post
                 post_username = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-actor__name')[0].innerText")
-                #print(f"LOG: Post Username: {post_username}")
-                # 3. Get text of post
+                
+                # Get user description of post
+                post_userdescription = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-actor__description')[0].innerText")
+
+                # Get time of post
+                post_published = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-actor__sub-description')[0].innerText")
+
+                # Get text of post
                 post_text = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-text')[0].innerText")
-                #print(f"LOG: Post Text: {post_text}")
+                
                 # Create post object
-                posts.append(Post(id=post_id,username=post_username,text=post_text))
+                post = Post(id=post_id,
+                            username=post_username,
+                            userdescription=post_userdescription,
+                            published=post_published,
+                            text=post_text
+                        )
+                
+                # Create hash from id
+                post_id_hash = hashlib.sha1(bytes(post_id, encoding='utf-8')).hexdigest()
+                
+                # Save as json
+                posts[post_id_hash] = post.as_json()
             except:
                 pass
 
@@ -142,8 +163,9 @@ class HashtagScraper(Thread):
             self.browser.execute_script('window.scrollTo(0, ' + str(window_height * scrolls) + ');')
             wait_for_scrolling()
             scrolls += 1
+            print(f"Scrolling progress: {scrolls}")
             # DEBUG: Manual break loop (for dev)
-            if scrolls > 15:
+            if scrolls > 50:
                 break
 
         # Code snippets, maybe use later, otherwise delete
