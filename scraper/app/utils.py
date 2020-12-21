@@ -83,9 +83,9 @@ class Posts:
         return posts
 
 class Post:
-    def __init__(self, id: int, name: str, text: str):
+    def __init__(self, id: str, username: str, text: str):
         self.id = id
-        self.name = name
+        self.username = username
         self.text = text
 
 class ScrapingResult:

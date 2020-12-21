@@ -6,7 +6,7 @@ import time
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-from utils import ScrapingException, HumanCheckException, wait_for_loading, wait_for_scrolling, is_url_valid, HashtagScrapingResult, Posts
+from utils import ScrapingException, HumanCheckException, wait_for_loading, wait_for_scrolling, is_url_valid, HashtagScrapingResult, Post
 
 class HashtagScraper(Thread):
 
@@ -56,9 +56,9 @@ class HashtagScraper(Thread):
             )
 
         # DEBUGGING: Write output after scraping
-        output = open("../output/output.txt","w") 
-        output.write('finished.') 
-        output.close()
+        #output = open("../output/output.txt","w") 
+        #output.write('finished.') 
+        #output.close()
 
         # Closing the Chrome instance
         self.browser.quit()
@@ -78,9 +78,6 @@ class HashtagScraper(Thread):
 
         except ScrapingException:
             hashtag_feed = None
-        
-        print(hashtag_feed.names)
-        print(hashtag_feed.texts)
 
         return hashtag_feed
 
@@ -99,47 +96,58 @@ class HashtagScraper(Thread):
             else:
                 raise HumanCheckException
 
+        # Scrall down to see more posts
         self.load_full_page()
 
         # SCRAPING
         posts = self.scrape_posts()
-        #post_id = self.scrape_post_id()
-        #post_names = self.scrape_post_names()
-        #post_texts = self.scrape_post_texts()
-
-        return posts
-        #Posts(
-        #    names=post_names,
-        #    texts=post_texts
-        #)
-
-    def scrape_posts():
-        # Scrape by loop over feed:
-        # HTML class: "feed-hashtag-feed__update-list ember-view" 
-        # 1. Step: Get all post ids (-> Function call)
-        # 2. Step: For each post id, get the post attributes (-> Function call)
-
-        # 1. Get number of posts (-> Loop over this and get all elements you want contained in the post)
-        # document.querySelectorAll('[data-id]').length
-
-        # 2. Get id of post i
-        # document.querySelectorAll('[data-id]')[i].getAttribute('data-id')
-
-        # 3. Get user name of post for i
-        # document.querySelectorAll('[data-id]')[i].getElementsByClassName("feed-shared-actor__name")[0].innerText
-
-        # 4. Get text of post for i
-        # document.querySelectorAll('[data-id]')[i].getElementsByClassName("feed-shared-text")[0].innerText
-
 
         return posts
 
-    def scrape_post_id(self):
-        ids =[]
-        for i in range(5):
-            #ids.append(self.browser.execute_script(""))
-        return ids
+    def scrape_posts(self):
+        """
+            Scrape each post from hastag feed.
+        """
+        print("LOG: Enter scrape_posts()")
+        # Get number of posts (depending on scroll-depth)
+        num_posts = self.browser.execute_script("return document.querySelectorAll('[data-id]').length")
+        print(f"LOG: Number of posts: {num_posts}")
+        # Initialize dict
+        posts = []
 
+        for i in range(0,num_posts):
+            try:
+                #print(f"i= {i}")
+                # 1. Get id of post
+                post_id = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getAttribute('data-id')")
+                #print(f"LOG: Post ID: {post_id}")
+                # 2. Get user name of post
+                post_username = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-actor__name')[0].innerText")
+                #print(f"LOG: Post Username: {post_username}")
+                # 3. Get text of post
+                post_text = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-text')[0].innerText")
+                #print(f"LOG: Post Text: {post_text}")
+                # Create post object
+                posts.append(Post(id=post_id,username=post_username,text=post_text))
+            except:
+                pass
+
+        return posts
+
+    def load_full_page(self):
+        print('LOG: Enter function load_full_page()')
+        window_height = self.browser.execute_script("return window.innerHeight")
+        scrolls = 1
+        while scrolls * window_height < self.browser.execute_script("return document.body.offsetHeight"):
+            self.browser.execute_script('window.scrollTo(0, ' + str(window_height * scrolls) + ');')
+            wait_for_scrolling()
+            scrolls += 1
+            # DEBUG: Manual break loop (for dev)
+            if scrolls > 15:
+                break
+
+        # Code snippets, maybe use later, otherwise delete
+        """
     def scrape_post_names(self):
         names = []
         for i in range(5):
@@ -153,19 +161,7 @@ class HashtagScraper(Thread):
             texts.append(self.browser.execute_script("return document.getElementsByClassName('feed-shared-text') \
                 [" + str(i) + "].children[0].innerText"))
         return texts
-
-    def load_full_page(self):
-        print('LOG: Enter function load_full_page()')
-        window_height = self.browser.execute_script("return window.innerHeight")
-        scrolls = 1
-        while scrolls * window_height < self.browser.execute_script("return document.body.offsetHeight"):
-            self.browser.execute_script('window.scrollTo(0, ' + str(window_height * scrolls) + ');')
-            wait_for_scrolling()
-            scrolls += 1
-            # DEBUG: Manual break loop (for dev)
-            if scrolls > 5:
-                break
-
+        """
         # Comment out for now, as I don't know what it's good for. Maybe we need it later. 
         """
         for i in range(self.browser.execute_script(
