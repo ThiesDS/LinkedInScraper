@@ -15,27 +15,30 @@ class HashtagScraper(Thread):
 
     def __init__(self, linkedin_username, linkedin_password, hashtag_urls, headless=False):
 
+        # Initialize thread
         Thread.__init__(self)
 
-        # Creation of a new instance of Chrome
+        # Options of the Chrome instance
         options = webdriver.ChromeOptions()
         options.add_argument('--no-sandbox')
-        if headless:
-            options.add_argument('--headless')
+        options.add_argument('--headless')
 
+        # Instantiate Chrome
         self.browser = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
 
-        self.hashtag_urls = hashtag_urls
-
-        self.results = []
-
+        # Make linkedin credentials available to other functions
         self.linkedin_username = linkedin_username
         self.linkedin_password = linkedin_password
 
+        # Hashtag urls 
+        self.hashtag_urls = hashtag_urls
+
     def run(self):
-        print('LOG: Enter function run()')
+        """
+            Start parallel jobs. This function is required by the thread module.
+        """
         
-        # Login in LinkedIn
+        # Login to LinkedIn
         self.browser.get('https://www.linkedin.com/uas/login')
 
         username_input = self.browser.find_element_by_id('username')
@@ -45,72 +48,85 @@ class HashtagScraper(Thread):
         password_input.send_keys(self.linkedin_password)
         password_input.submit()
 
+        # Check, if we are on the correct page
         if not self.browser.current_url == "https://www.linkedin.com/feed/":
             time.sleep(40)
             raise AuthenticationException()
 
-        for linkedin_url in self.hashtag_urls:
-            hashtag_feed = self.scrape_hashtag_feed(linkedin_url)
-            scraping_date = datetime.now().strftime('%Y-%m-%d')
+        # Actual work: For each url, scrape posts and store data
+        for hashtag_url in self.hashtag_urls:
+
+            # Scrape hashtag posts of this url
+            hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
+
+            # Set date of scraping
+            scraping_date = datetime.now().strftime('%Y-%m-%d %H-%m-%s')
+
+            # Combine results 
             scraping_results = HashtagScrapingResult(
-                hashtag_url=linkedin_url,
+                hashtag_url=hashtag_url,
                 scraping_date=scraping_date,
-                hashtag_feed=hashtag_feed,
+                hashtag_posts=hashtag_posts,
             )
         
-        # Write to json
-        with open('../output/output.txt', 'w') as outfile:
+        # Write results to json
+        with open('../output/output.json', 'w') as outfile:
             json.dump(scraping_results.as_json(), outfile,indent=4)
 
         # Closing the Chrome instance
         self.browser.quit()
 
-    def scrape_hashtag_feed(self, linkedin_url, waiting_time=10):    
-        print('LOG: Enter function scrape_hashtag_feed()')
+    def scrape_hashtag_posts(self, hashtag_url, waiting_time=10):    
+        """
+            Main scraping function: Calls pageload_and_scrape() function. Or recursively itself with delay on error (e.g. when showing a captcha).
+        """
         
         try:
-            hashtag_feed = self.__scrape_hashtag_feed(linkedin_url)
+            # Try scrape posts
+            hashtag_posts = self.pageload_and_scrape_posts(hashtag_url)
 
         except HumanCheckException:
-            print("Please solve the captcha.")
-            print("Another try will be performed within 10 seconds...")
+            # If Human Check Exception occurs, wait ...
             time.sleep(waiting_time)
 
-            hashtag_feed = self.scrape_hashtag_feed(linkedin_url, int(waiting_time*1.5))
+            # and call this function again
+            hashtag_posts = self.scrape_hashtag_posts(hashtag_url, int(waiting_time*1.5))
 
         except ScrapingException:
-            hashtag_feed = None
+            # If Scraping Exception, return with None
+            hashtag_posts = None
 
-        return hashtag_feed
+        return hashtag_posts
 
-    def __scrape_hashtag_feed(self, hashtag_linkedin_url):
-        print('LOG: Enter function __scrape_hashtag_feed()')
-        
-        if not is_url_valid(hashtag_linkedin_url):
+    def pageload_and_scrape_posts(self, hashtag_url):
+        """
+            Main function that will load the full page (to a certain extend) by "scrolling" down and scrape all posts that have been loaded.
+        """
+        # Check, if the current url is valid (syntax)
+        if not is_url_valid(hashtag_url):
             raise ScrapingException
 
-        self.browser.get(hashtag_linkedin_url)
+        # Load the url
+        self.browser.get(hashtag_url)
 
-        # Check correct loading of profile and eventual Human Check
-        if not str(self.browser.current_url).strip() == hashtag_linkedin_url.strip():
+        # Check correct loading of page and eventual Human Check
+        if not str(self.browser.current_url).strip() == hashtag_url.strip():
             if self.browser.current_url == 'https://www.linkedin.com/in/unavailable/':
                 raise ScrapingException
             else:
                 raise HumanCheckException
 
-        # Scrall down to see more posts
+        # Scroll down to see more posts
         self.load_full_page()
 
-        # SCRAPING
+        # Scrape posts
         posts = self.scrape_posts()
-
-        #print(posts)
 
         return posts
 
     def scrape_posts(self):
         """
-            Scrape each post from hastag feed.
+            Scrape each post from the loaded hastag feed.
         """
         print("LOG: Enter scrape_posts()")
         
@@ -156,7 +172,9 @@ class HashtagScraper(Thread):
         return posts
 
     def load_full_page(self):
-        print('LOG: Enter function load_full_page()')
+        """
+            Load the full page by imitating a "scrolling".
+        """
         window_height = self.browser.execute_script("return window.innerHeight")
         scrolls = 1
         while scrolls * window_height < self.browser.execute_script("return document.body.offsetHeight"):

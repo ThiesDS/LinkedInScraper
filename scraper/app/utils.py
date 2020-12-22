@@ -39,15 +39,15 @@ class Post:
                 )
 
 class HashtagScrapingResult:
-    def __init__(self, hashtag_url: str, scraping_date: {str}, hashtag_feed: {str}):
+    def __init__(self, hashtag_url: str, scraping_date: str, hashtag_posts: {str}):
         self.hashtag_url = hashtag_url
         self.scraping_date = scraping_date
-        self.hashtag_feed = hashtag_feed
+        self.hashtag_posts = hashtag_posts
 
     def as_json(self):
         return dict(hashtag_url=self.hashtag_url, 
                     scraping_date=self.scraping_date, 
-                    hashtag_feed=self.hashtag_feed)
+                    hashtag_posts=self.hashtag_posts)
 
 class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):
