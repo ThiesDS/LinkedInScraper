@@ -40,24 +40,23 @@ class Post:
                 )
 
 class HashtagScrapingResult:
-    def __init__(self, hashtag_url: str, scraping_date: str, hashtag_posts: {str}):
-        self.hashtag_url = hashtag_url
+    def __init__(self, hashtag: str, scraping_date: str, hashtag_posts: {str}):
+        self.hashtag = hashtag
         self.scraping_date = scraping_date
         self.hashtag_posts = hashtag_posts
 
     def as_json(self):
-        return dict(hashtag_url=self.hashtag_url, 
+        return dict(hashtag=self.hashtag, 
                     scraping_date=self.scraping_date, 
                     hashtag_posts=self.hashtag_posts)
 
     def to_dataframe(self):
         # Initialize df
-        df = pd.DataFrame(columns=['hashtag_url','scraping_date', 'id','username','userdescription','published','text'])
-        #df = pd.DataFrame({'hastag_url' = self.hashtag_url,'scraping_date' = self.scraping_date})
+        df = pd.DataFrame(columns=['hashtag','scraping_date', 'id','username','userdescription','published','text'])
 
         # Loop over all hastag urls
         for key in self.hashtag_posts.keys():
-            df = df.append({**{'hashtag_url':self.hashtag_url},
+            df = df.append({**{'hashtag':self.hashtag},
                             **{'scraping_date':self.scraping_date},
                             **self.hashtag_posts[key]},
                  ignore_index=True)

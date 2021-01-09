@@ -66,9 +66,12 @@ class HashtagScraper(Thread):
             # Get date of scraping
             scraping_date = datetime.now().strftime('%Y-%m-%d %H-%m-%s')
 
+            # Extract Keyword from url
+            hashtag = hashtag_url.split('keywords=')[1]
+
             # Combine results 
             scraping_results = HashtagScrapingResult(
-                hashtag_url=hashtag_url,
+                hashtag=hashtag,
                 scraping_date=scraping_date,
                 hashtag_posts=hashtag_posts,
             )
