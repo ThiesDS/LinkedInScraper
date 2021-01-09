@@ -13,7 +13,7 @@ from utils import ScrapingException, HumanCheckException, wait_for_loading, wait
 
 class HashtagScraper(Thread):
 
-    def __init__(self, linkedin_username, linkedin_password, hashtag_urls, headless=False):
+    def __init__(self, linkedin_username, linkedin_password, hashtag_urls, headless=False, output_format='flat'):
 
         # Initialize thread
         Thread.__init__(self)
@@ -30,12 +30,16 @@ class HashtagScraper(Thread):
         self.linkedin_username = linkedin_username
         self.linkedin_password = linkedin_password
 
-        # Hashtag urls 
+        # Make Hashtag urls available to other functions
         self.hashtag_urls = hashtag_urls
+
+        # Output setting
+        self.output_format = output_format
+        self.output_folder = '../output/'
 
     def run(self):
         """
-            Start parallel jobs. This function is required by the thread module.
+            Start parallel jobs. This function is required by the threading module.
         """
         
         # Login to LinkedIn
@@ -59,7 +63,7 @@ class HashtagScraper(Thread):
             # Scrape hashtag posts of this url
             hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
 
-            # Set date of scraping
+            # Get date of scraping
             scraping_date = datetime.now().strftime('%Y-%m-%d %H-%m-%s')
 
             # Combine results 
@@ -68,10 +72,17 @@ class HashtagScraper(Thread):
                 scraping_date=scraping_date,
                 hashtag_posts=hashtag_posts,
             )
+
+        # Save output
+        if self.output_format=='flat':
+            # Write flatfile to csv
+            df_scraping_results = scraping_results.to_dataframe().to_csv(self.output_folder + 'output_hastags.csv')
+        elif self.output_format=='json':
+            # Write results to json
+            with open(self.output_folder + 'output_hastags.json', 'w') as outfile:
+                json.dump(scraping_results.as_json(), outfile,indent=4)
+
         
-        # Write results to json
-        with open('../output/output.json', 'w') as outfile:
-            json.dump(scraping_results.as_json(), outfile,indent=4)
 
         # Closing the Chrome instance
         self.browser.quit()
@@ -164,8 +175,9 @@ class HashtagScraper(Thread):
                 # Create hash from id
                 post_id_hash = hashlib.sha1(bytes(post_id, encoding='utf-8')).hexdigest()
                 
-                # Save as json
+                # Convert to json
                 posts[post_id_hash] = post.as_json()
+  
             except:
                 pass
 
@@ -183,9 +195,10 @@ class HashtagScraper(Thread):
             scrolls += 1
             print(f"Scrolling progress: {scrolls}")
             # DEBUG: Manual break loop (for dev)
-            if scrolls > 50:
+            if scrolls > 10:
                 break
-
+        
+        print(f'Scroll depth: {scrolls}')
         # Code snippets, maybe use later, otherwise delete
         """
     def scrape_post_names(self):

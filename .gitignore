@@ -7,3 +7,5 @@
 # Input/output
 /input/*.txt
 /output/*.txt
+/input/*.csv
+/output/*.csv

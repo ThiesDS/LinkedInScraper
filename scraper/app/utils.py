@@ -1,6 +1,7 @@
 import json
 import re
 import time
+import pandas as pd
 
 
 class AuthenticationException(Exception):
@@ -48,6 +49,21 @@ class HashtagScrapingResult:
         return dict(hashtag_url=self.hashtag_url, 
                     scraping_date=self.scraping_date, 
                     hashtag_posts=self.hashtag_posts)
+
+    def to_dataframe(self):
+        # Initialize df
+        df = pd.DataFrame(columns=['hashtag_url','scraping_date', 'id','username','userdescription','published','text'])
+        #df = pd.DataFrame({'hastag_url' = self.hashtag_url,'scraping_date' = self.scraping_date})
+
+        # Loop over all hastag urls
+        for key in self.hashtag_posts.keys():
+            df = df.append({**{'hashtag_url':self.hashtag_url},
+                            **{'scraping_date':self.scraping_date},
+                            **self.hashtag_posts[key]},
+                 ignore_index=True)
+
+        print(df)
+        return df
 
 class ComplexEncoder(json.JSONEncoder):
     def default(self, obj):
