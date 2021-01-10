@@ -6,6 +6,8 @@
 
 # Input/output
 /input/*.txt
-/output/*.txt
 /input/*.csv
+/output/*.txt
 /output/*.csv
+/output/*.json
+

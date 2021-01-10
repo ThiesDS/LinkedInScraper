@@ -7,13 +7,15 @@ import time
 import json
 import hashlib
 
+import pandas as pd
+
 from webdriver_manager.chrome import ChromeDriverManager
 
-from utils import ScrapingException, HumanCheckException, wait_for_loading, wait_for_scrolling, is_url_valid, HashtagScrapingResult, Post
+from utils import ScrapingException, HumanCheckException, wait_for_loading, wait_for_scrolling, is_url_valid, HashtagScrapingResult, Post, HashtagResultsSaver
 
 class HashtagScraper(Thread):
 
-    def __init__(self, linkedin_username, linkedin_password, hashtag_urls, headless=False, output_format='flat'):
+    def __init__(self, linkedin_username, linkedin_password, hashtags, headless=False, output_format='flat'):
 
         # Initialize thread
         Thread.__init__(self)
@@ -31,7 +33,7 @@ class HashtagScraper(Thread):
         self.linkedin_password = linkedin_password
 
         # Make Hashtag urls available to other functions
-        self.hashtag_urls = hashtag_urls
+        self.hashtags = hashtags
 
         # Output setting
         self.output_format = output_format
@@ -58,34 +60,33 @@ class HashtagScraper(Thread):
             raise AuthenticationException()
 
         # Actual work: For each url, scrape posts and store data
-        for hashtag_url in self.hashtag_urls:
+        hashtag_results_saver = HashtagResultsSaver(self.output_format,self.output_folder)
+        scraping_results = hashtag_results_saver.allocate_object()
+
+        # Loop
+        for hashtag in self.hashtags:
+
+            # Create hashtag url
+            hashtag_url = 'https://www.linkedin.com/feed/hashtag/?keywords=' + hashtag
 
             # Scrape hashtag posts of this url
             hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
 
             # Get date of scraping
-            scraping_date = datetime.now().strftime('%Y-%m-%d %H-%m-%s')
+            scraping_date = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
 
-            # Extract Keyword from url
-            hashtag = hashtag_url.split('keywords=')[1]
-
-            # Combine results 
-            scraping_results = HashtagScrapingResult(
+            # Collect results for hashtag in data class
+            hashtag_results = HashtagScrapingResult(
                 hashtag=hashtag,
                 scraping_date=scraping_date,
-                hashtag_posts=hashtag_posts,
+                hashtag_posts=hashtag_posts
             )
 
-        # Save output
-        if self.output_format=='flat':
-            # Write flatfile to csv
-            df_scraping_results = scraping_results.to_dataframe().to_csv(self.output_folder + 'output_hastags.csv')
-        elif self.output_format=='json':
-            # Write results to json
-            with open(self.output_folder + 'output_hastags.json', 'w') as outfile:
-                json.dump(scraping_results.as_json(), outfile,indent=4)
+            # Store results for all hashtags
+            scraping_results = hashtag_results_saver.aggregate(scraping_results, hashtag_results)
 
-        
+        # Save to file
+        hashtag_results_saver.save_to_file(scraping_results)
 
         # Closing the Chrome instance
         self.browser.quit()
@@ -193,15 +194,17 @@ class HashtagScraper(Thread):
         window_height = self.browser.execute_script("return window.innerHeight")
         scrolls = 1
         while scrolls * window_height < self.browser.execute_script("return document.body.offsetHeight"):
+            
             self.browser.execute_script('window.scrollTo(0, ' + str(window_height * scrolls) + ');')
+           
             wait_for_scrolling()
+           
             scrolls += 1
-            print(f"Scrolling progress: {scrolls}")
+
             # DEBUG: Manual break loop (for dev)
             if scrolls > 10:
                 break
         
-        print(f'Scroll depth: {scrolls}')
         # Code snippets, maybe use later, otherwise delete
         """
     def scrape_post_names(self):

@@ -46,11 +46,14 @@ class HashtagScrapingResult:
         self.hashtag_posts = hashtag_posts
 
     def as_json(self):
-        return dict(hashtag=self.hashtag, 
-                    scraping_date=self.scraping_date, 
-                    hashtag_posts=self.hashtag_posts)
+        d = {}
+        d[self.hashtag] = {
+            'scraping_date':self.scraping_date, 
+            'hashtag_posts':self.hashtag_posts
+        }
+        return d
 
-    def to_dataframe(self):
+    def as_dataframe(self):
         # Initialize df
         df = pd.DataFrame(columns=['hashtag','scraping_date', 'id','username','userdescription','published','text'])
 
@@ -61,7 +64,6 @@ class HashtagScrapingResult:
                             **self.hashtag_posts[key]},
                  ignore_index=True)
 
-        print(df)
         return df
 
 class ComplexEncoder(json.JSONEncoder):
@@ -100,3 +102,39 @@ def wait_for_loading():
 
 def wait_for_scrolling():
     time.sleep(1)
+
+class HashtagResultsSaver():
+    """
+        Helper to save hashtag results to a file dependent on the output format
+    """
+
+    def __init__(self, output_format, output_folder):
+        self.output_format = output_format
+        self.output_folder = output_folder
+
+    def allocate_object(self):
+        if self.output_format=='flat':
+            scraping_results = pd.DataFrame()
+        elif self.output_format=='json':
+            scraping_results = {}
+        
+        return scraping_results
+
+    def aggregate(self, scraping_results, hashtag_results):
+        if self.output_format=='flat':
+            # Write results to csv
+            scraping_results = scraping_results.append(hashtag_results.as_dataframe())
+        
+        elif self.output_format=='json':
+            # Write results to json
+            scraping_results = {**scraping_results, **hashtag_results.as_json()}
+
+        return scraping_results
+
+    def save_to_file(self,scraping_results):
+        # Save to file
+        if self.output_format=='flat':
+            scraping_results.to_csv(self.output_folder + 'output_hashtags.csv',index=False)
+        elif self.output_format=='json':
+            with open(self.output_folder + 'output_hashtags.json', 'w') as outfile:
+                json.dump(scraping_results, outfile,indent=4)
