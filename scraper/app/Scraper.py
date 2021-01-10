@@ -11,7 +11,7 @@ import pandas as pd
 
 from webdriver_manager.chrome import ChromeDriverManager
 
-from utils import ScrapingException, HumanCheckException, wait_for_loading, wait_for_scrolling, is_url_valid, HashtagScrapingResult, Post, HashtagResultsSaver
+from utils import *
 
 class HashtagScraper(Thread):
 
@@ -77,8 +77,8 @@ class HashtagScraper(Thread):
 
             # Collect results for hashtag in data class
             hashtag_results = HashtagScrapingResult(
-                hashtag=hashtag,
-                scraping_date=scraping_date,
+                hashtag=remove_escapes(hashtag),
+                scraping_date=remove_escapes(scraping_date),
                 hashtag_posts=hashtag_posts
             )
 
@@ -143,7 +143,6 @@ class HashtagScraper(Thread):
         """
             Scrape each post from the loaded hastag feed.
         """
-        print("LOG: Enter scrape_posts()")
         
         # Get number of posts (depending on scroll-depth)
         num_posts = self.browser.execute_script("return document.querySelectorAll('[data-id]').length")
@@ -154,7 +153,7 @@ class HashtagScraper(Thread):
         for i in range(0,num_posts):
             try:
                 # Get id of post
-                post_id = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getAttribute('data-id')")
+                data_id = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getAttribute('data-id')")
                 
                 # Get user name of post
                 post_username = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-actor__name')[0].innerText")
@@ -168,19 +167,19 @@ class HashtagScraper(Thread):
                 # Get text of post
                 post_text = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-text')[0].innerText")
                 
+                # Create hash from data_id and use it as id
+                post_id = hashlib.sha1(bytes(data_id, encoding='utf-8')).hexdigest()
+
                 # Create post object
-                post = Post(id=post_id,
-                            username=post_username,
-                            userdescription=post_userdescription,
-                            published=post_published,
-                            text=post_text
+                post = Post(username=remove_escapes(post_username),
+                            userdescription=remove_escapes(post_userdescription),
+                            published=remove_escapes(post_published),
+                            text=remove_escapes(post_text),
+                            data_id = data_id
                         )
                 
-                # Create hash from id
-                post_id_hash = hashlib.sha1(bytes(post_id, encoding='utf-8')).hexdigest()
-                
                 # Convert to json
-                posts[post_id_hash] = post.as_json()
+                posts[post_id] = post.as_json()
   
             except:
                 pass
@@ -191,7 +190,9 @@ class HashtagScraper(Thread):
         """
             Load the full page by imitating a "scrolling".
         """
+
         window_height = self.browser.execute_script("return window.innerHeight")
+        
         scrolls = 1
         while scrolls * window_height < self.browser.execute_script("return document.body.offsetHeight"):
             

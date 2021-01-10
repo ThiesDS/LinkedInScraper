@@ -22,7 +22,7 @@ s = HashtagScraper(
     linkedin_password=os.getenv('LINKEDIN_PASSWORD'),
     hashtags=hashtags,
     headless='HEADLESS',
-    output_format='flat'
+    output_format='json'
 )
 
 s.start()

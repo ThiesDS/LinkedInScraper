@@ -24,19 +24,19 @@ class CannotProceedScrapingException(Exception):
     pass
 
 class Post:
-    def __init__(self, id: str, username: str, userdescription: str, published: str, text: str):
-        self.id = id
+    def __init__(self, username: str, userdescription: str, published: str, text: str, data_id: str):
         self.username = username
         self.userdescription = userdescription
         self.published = published
         self.text = text
+        self.data_id = data_id
 
     def as_json(self):
-        return dict(id=self.id,
-                    username=self.username,
+        return dict(username=self.username,
                     userdescription=self.userdescription,
                     published=self.published,
-                    text=self.text
+                    text=self.text,
+                    data_id=self.data_id
                 )
 
 class HashtagScrapingResult:
@@ -54,13 +54,15 @@ class HashtagScrapingResult:
         return d
 
     def as_dataframe(self):
-        # Initialize df
-        df = pd.DataFrame(columns=['hashtag','scraping_date', 'id','username','userdescription','published','text'])
+        # Initialize df. Add columns dynamically, as we only have to change the columns in one place above.
+        cols = ['hashtag','scraping_date'] + ['id'] + list(self.hashtag_posts[list(self.hashtag_posts.keys())[0]].keys())
+        df = pd.DataFrame(columns=cols)
 
         # Loop over all hastag urls
         for key in self.hashtag_posts.keys():
             df = df.append({**{'hashtag':self.hashtag},
                             **{'scraping_date':self.scraping_date},
+                            **{'id':key},
                             **self.hashtag_posts[key]},
                  ignore_index=True)
 
@@ -113,7 +115,7 @@ class HashtagResultsSaver():
         self.output_folder = output_folder
 
     def allocate_object(self):
-        if self.output_format=='flat':
+        if self.output_format=='csv':
             scraping_results = pd.DataFrame()
         elif self.output_format=='json':
             scraping_results = {}
@@ -121,7 +123,7 @@ class HashtagResultsSaver():
         return scraping_results
 
     def aggregate(self, scraping_results, hashtag_results):
-        if self.output_format=='flat':
+        if self.output_format=='csv':
             # Write results to csv
             scraping_results = scraping_results.append(hashtag_results.as_dataframe())
         
@@ -133,8 +135,23 @@ class HashtagResultsSaver():
 
     def save_to_file(self,scraping_results):
         # Save to file
-        if self.output_format=='flat':
+        if self.output_format=='csv':
             scraping_results.to_csv(self.output_folder + 'output_hashtags.csv',index=False)
         elif self.output_format=='json':
             with open(self.output_folder + 'output_hashtags.json', 'w') as outfile:
                 json.dump(scraping_results, outfile,indent=4)
+
+def remove_escapes(s):
+    """
+        Helper to remove escape characters from hashtag.
+    """
+    # Create escape characters
+    escapes = ''.join([chr(char) for char in range(1, 32)])
+
+    # Instantiate translator
+    translator = s.maketrans('', '', escapes)
+
+    # Replace
+    t = s.translate(translator)
+
+    return t
