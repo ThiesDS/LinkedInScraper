@@ -8,6 +8,7 @@ script:
   - docker build -t linkedinscraper:$(git describe --abbrev=0 --tags) .
 
 deploy:
+  skip_cleanup: true
   provider: script
   script: bash docker_push.sh
   on:
