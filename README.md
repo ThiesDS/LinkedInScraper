@@ -1,4 +1,4 @@
-# LinkedIn Scraper App
+# LinkedInScraper
 
 ## NOTE
 This is a dockerized version fully refactored but inspired by the project [LinkedInScraping](https://github.com/federicohaag/LinkedInScraping).
