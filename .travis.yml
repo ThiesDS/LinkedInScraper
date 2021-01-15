@@ -6,6 +6,7 @@ services:
 
 script:
   - docker build -t linkedinscraper:$(git describe --abbrev=0 --tags) .
+  - docker images
 
 deploy:
   skip_cleanup: true
