@@ -1,10 +1,5 @@
-sudo: required
-
 language: python
-
-branches:
-  only:
-  - master
+sudo: required
 
 services:
   - docker
@@ -15,3 +10,5 @@ script:
 deploy:
   provider: script
   script: bash docker_push
+  on:
+    branch: master
