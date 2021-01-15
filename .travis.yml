@@ -1,0 +1,17 @@
+sudo: required
+
+language: python
+
+branches:
+  only:
+  - master
+
+services:
+  - docker
+
+script:
+  - docker build -t linkedinscraper:$(git describe --abbrev=0 --tags) .
+
+deploy:
+  provider: script
+  script: bash docker_push
