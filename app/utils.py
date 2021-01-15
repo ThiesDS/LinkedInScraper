@@ -131,6 +131,9 @@ class HashtagResultsSaver():
             # Write results to json
             scraping_results = {**scraping_results, **hashtag_results.as_json()}
 
+        else:
+            sys.exit("Output format not specified.")
+
         return scraping_results
 
     def save_to_file(self,scraping_results):

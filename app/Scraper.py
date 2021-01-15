@@ -15,7 +15,7 @@ from utils import *
 
 class HashtagScraper(Thread):
 
-    def __init__(self, linkedin_username, linkedin_password, hashtags, headless=False, output_format='flat'):
+    def __init__(self, linkedin_username, linkedin_password, hashtags, headless=False, output_format='json'):
 
         # Initialize thread
         Thread.__init__(self)
@@ -53,7 +53,7 @@ class HashtagScraper(Thread):
         password_input = self.browser.find_element_by_id('password')
         password_input.send_keys(self.linkedin_password)
         password_input.submit()
-
+        
         # Check, if we are on the correct page
         if not self.browser.current_url == "https://www.linkedin.com/feed/":
             time.sleep(40)
