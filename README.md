@@ -1,5 +1,7 @@
 # LinkedInScraper
 
+[![Build Status](https://travis-ci.com/ThiesDS/LinkedInScraper.svg?branch=main)](https://travis-ci.com/ThiesDS/LinkedInScraper)
+
 ## NOTE
 This is a dockerized version fully refactored but inspired by the project [LinkedInScraping](https://github.com/federicohaag/LinkedInScraping).
 
@@ -29,7 +31,7 @@ The app will go through all these hashtags, scrape the posts that contian these 
 
 ## Usage
 
-### Build and run from Github
+### Build image from Github
 
 To build the application from scratch, pull the repository first. 
 
@@ -39,7 +41,17 @@ Navigate to the folder `/LinkedInScraper` and build the docker image with
 docker build -t linkedinscraper:latest .
 ```
 
-After building the image, you can run the app with 
+### Pull image from DockerHub
+
+```bash
+docker pull sventhies/linkedinscraper
+```
+
+optionally, add the version, e.g. `:v2.1.7`.
+
+### Run container 
+
+After creating the image, you can run the app with 
 
 ```bash
 docker run -v ${PWD}/input:/input \
@@ -52,5 +64,3 @@ docker run -v ${PWD}/input:/input \
 ```
 
 where `OUTPUT_FORMAT` can be one of `csv` of `json`.
-
-### Pull from DockerHub
