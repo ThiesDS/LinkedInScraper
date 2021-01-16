@@ -38,16 +38,18 @@ To build the application from scratch, pull the repository first.
 Navigate to the folder `/LinkedInScraper` and build the docker image with
 
 ```bash
-docker build -t linkedinscraper:latest .
+docker build -t linkedinscraper:v2.1.7 .
 ```
+
+Alter the version to your needs.
 
 ### Pull image from DockerHub
 
 ```bash
-docker pull sventhies/linkedinscraper
+docker pull sventhies/linkedinscraper:v2.1.7
 ```
 
-optionally, add the version, e.g. `:v2.1.7`.
+Alter the version to your needs.
 
 ### Run container 
 
@@ -60,7 +62,7 @@ docker run -v ${PWD}/input:/input \
            -e LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD} \
            -e OUTPUT_FORMAT=csv \
            --shm-size=2gb \
-           linkedinscraper:latest
+           linkedinscraper:v2.1.7
 ```
 
-where `OUTPUT_FORMAT` can be one of `csv` of `json`.
+where `OUTPUT_FORMAT` can be one of `csv` of `json`. And the version has to be the same as in the build/pull of the image.
