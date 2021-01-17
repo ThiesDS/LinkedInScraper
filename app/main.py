@@ -22,6 +22,7 @@ s = HashtagScraper(
     linkedin_password=os.getenv('LINKEDIN_PASSWORD'),
     hashtags=hashtags,
     headless='HEADLESS',
+    scroll_depth=os.getenv('SCROLL_DEPTH'),
     output_format=os.getenv('OUTPUT_FORMAT')
 )
 

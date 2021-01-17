@@ -15,7 +15,7 @@ from utils import *
 
 class HashtagScraper(Thread):
 
-    def __init__(self, linkedin_username, linkedin_password, hashtags, headless=False, output_format='json'):
+    def __init__(self, linkedin_username, linkedin_password, hashtags, headless=False, scroll_depth=50, output_format='json'):
 
         # Initialize thread
         Thread.__init__(self)
@@ -34,6 +34,9 @@ class HashtagScraper(Thread):
 
         # Make Hashtag urls available to other functions
         self.hashtags = hashtags
+
+        # Scroll depth
+        self.scroll_depth = scroll_depth
 
         # Output setting
         self.output_format = output_format
@@ -203,35 +206,5 @@ class HashtagScraper(Thread):
             scrolls += 1
 
             # DEBUG: Manual break loop (for dev)
-            if scrolls > 10:
+            if scrolls > int(self.scroll_depth):
                 break
-        
-        # Code snippets, maybe use later, otherwise delete
-        """
-    def scrape_post_names(self):
-        names = []
-        for i in range(5):
-            names.append(self.browser.execute_script("return document.getElementsByClassName('feed-shared-actor__name') \
-                [" + str(i) + "].children[0].innerText"))
-        return names
-
-    def scrape_post_texts(self):
-        texts = []
-        for i in range(5):
-            texts.append(self.browser.execute_script("return document.getElementsByClassName('feed-shared-text') \
-                [" + str(i) + "].children[0].innerText"))
-        return texts
-        """
-        # Comment out for now, as I don't know what it's good for. Maybe we need it later. 
-        """
-        for i in range(self.browser.execute_script(
-                "return document.getElementsByClassName('pv-profile-section__see-more-inline').length")):
-            try:
-                self.browser.execute_script(
-                    "document.getElementsByClassName('pv-profile-section__see-more-inline')[" + str(
-                        i) + "].click()")
-            except WebDriverException:
-                pass
-
-            wait_for_loading()
-        """

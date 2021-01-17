@@ -38,7 +38,7 @@ To build the application from scratch, pull the repository first.
 Navigate to the folder `/LinkedInScraper` and build the docker image with
 
 ```bash
-docker build -t linkedinscraper:v2.2 .
+docker build -t linkedinscraper:v0.3 .
 ```
 
 Alter the version to your needs.
@@ -46,7 +46,7 @@ Alter the version to your needs.
 ### Pull image from DockerHub
 
 ```bash
-docker pull sventhies/linkedinscraper:v2.2
+docker pull sventhies/linkedinscraper:v0.3
 ```
 
 Alter the version to your needs.
@@ -60,9 +60,12 @@ docker run -v ${PWD}/input:/input \
            -v ${PWD}/output:/output \
            -e LINKEDIN_EMAIL=${LINKEDIN_EMAIL} \
            -e LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD} \
+           -e SCROLL_DEPTH=50 \
            -e OUTPUT_FORMAT=csv \
            --shm-size=2gb \
-           linkedinscraper:v2.2
+           linkedinscraper:v0.3
 ```
 
-where `OUTPUT_FORMAT` can be one of `csv` of `json`. And the version has to be the same as in the build/pull of the image.
+where `OUTPUT_FORMAT` can be one of `csv` of `json` and `SCROLL_DEPTH` can be used to controll the amount of posts scraped - this is a preliminary solution. 
+
+NOTE: The version has to be the same as in the build/pull of the image.
