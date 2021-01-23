@@ -158,3 +158,14 @@ def remove_escapes(s):
     t = s.translate(translator)
 
     return t
+
+def linkedin_login(browser,linkedin_username,linkedin_password):
+
+    browser.get('https://www.linkedin.com/uas/login')
+
+    username_input = browser.find_element_by_id('username')
+    username_input.send_keys(linkedin_username)
+
+    password_input = browser.find_element_by_id('password')
+    password_input.send_keys(linkedin_password)
+    password_input.submit()

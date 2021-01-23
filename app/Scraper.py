@@ -48,14 +48,7 @@ class HashtagScraper(Thread):
         """
         
         # Login to LinkedIn
-        self.browser.get('https://www.linkedin.com/uas/login')
-
-        username_input = self.browser.find_element_by_id('username')
-        username_input.send_keys(self.linkedin_username)
-
-        password_input = self.browser.find_element_by_id('password')
-        password_input.send_keys(self.linkedin_password)
-        password_input.submit()
+        linkedin_login(self.browser,self.linkedin_username,self.linkedin_password)
         
         # Check, if we are on the correct page
         if not self.browser.current_url == "https://www.linkedin.com/feed/":
@@ -208,3 +201,74 @@ class HashtagScraper(Thread):
             # DEBUG: Manual break loop (for dev)
             if scrolls > int(self.scroll_depth):
                 break
+
+class ProfileScraper(Thread):
+
+    def __init__(self, linkedin_username, linkedin_password, profiles, headless=False, output_format='json'):
+
+        # Initialize thread
+        Thread.__init__(self)
+
+        # Options of the Chrome instance
+        options = webdriver.ChromeOptions()
+        options.add_argument('--no-sandbox')
+        options.add_argument('--headless')
+
+        # Instantiate Chrome
+        self.browser = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
+
+        # Make linkedin credentials available to other functions
+        self.linkedin_username = linkedin_username
+        self.linkedin_password = linkedin_password
+
+        # Make Hashtag urls available to other functions
+        self.profiles = profiles
+
+        # Output setting
+        self.output_format = output_format
+        self.output_folder = '../output/'
+
+    def run(self):
+        """
+            Start parallel jobs. This function is required by the threading module.
+        """
+        
+        # Login to LinkedIn
+        linkedin_login(self.browser,self.linkedin_username,self.linkedin_password)
+        
+        # Check, if we are on the correct page
+        if not self.browser.current_url == "https://www.linkedin.com/feed/":
+            time.sleep(40)
+            raise AuthenticationException()
+
+        # Actual work: For each url, scrape posts and store data
+        profiles_results_saver = ProfilesResultsSaver(self.output_format,self.output_folder)
+        scraping_results = profiles_results_saver.allocate_object()
+
+        # Loop
+        for hashtag in self.hashtags:
+
+            # Create hashtag url
+            hashtag_url = 'https://www.linkedin.com/feed/hashtag/?keywords=' + hashtag
+
+            # Scrape hashtag posts of this url
+            hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
+
+            # Get date of scraping
+            scraping_date = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+
+            # Collect results for hashtag in data class
+            hashtag_results = HashtagScrapingResult(
+                hashtag=remove_escapes(hashtag),
+                scraping_date=remove_escapes(scraping_date),
+                hashtag_posts=hashtag_posts
+            )
+
+            # Store results for all hashtags
+            scraping_results = hashtag_results_saver.aggregate(scraping_results, hashtag_results)
+
+        # Save to file
+        hashtag_results_saver.save_to_file(scraping_results)
+
+        # Closing the Chrome instance
+        self.browser.quit()
