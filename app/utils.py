@@ -68,14 +68,6 @@ class HashtagScrapingResult:
 
         return df
 
-class ComplexEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if hasattr(obj, 'reprJSON'):
-            return obj.reprJSON()
-        else:
-            return json.JSONEncoder.default(self, obj)
-
-
 def is_url_valid(url):
     regex = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
@@ -86,21 +78,8 @@ def is_url_valid(url):
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return re.match(regex, url) is not None
 
-
-def get_months_between_dates(date1, date2):
-    if date1 < date2:
-        diff = date2 - date1
-    elif date1 > date2:
-        diff = date1 - date2
-    else:
-        return 0
-
-    return diff.days // 30
-
-
 def wait_for_loading():
     time.sleep(2)
-
 
 def wait_for_scrolling():
     time.sleep(1)
@@ -169,3 +148,60 @@ def linkedin_login(browser,linkedin_username,linkedin_password):
     password_input = browser.find_element_by_id('password')
     password_input.send_keys(linkedin_password)
     password_input.submit()
+
+class Location:
+    def __init__(self, location: str):
+        self.location = location
+        self.city = ''
+        self.country = ''
+
+        if ',' in location:
+            try:
+                self.city = location.split(',')[0].strip()
+                self.country = location.split(',')[-1].strip()
+            except:
+                pass
+
+    def reprJSON(self):
+        return dict(location=self.location, city=self.city, country=self.country)
+
+class Company:
+    def __init__(self, name: str, industry: str, employees: str):
+        self.name = name
+        self.industry = industry
+        self.employees = employees
+
+    def reprJSON(self):
+        return dict(name=self.name, industry=self.industry, employees=self.employees)
+
+class Job:
+    def __init__(self, position: str, company: Company, location: Location, date_range: str):
+        self.position = position
+        self.company = company
+        self.location = location
+        self.date_range = date_range
+
+    def reprJSON(self):
+        return dict(position=self.position, company=self.company, location=self.location, date_range=self.date_range)
+
+class Profile:
+    def __init__(self, name: str, email: str, skills: [str], jobs: [Job]):
+        self.name = name
+        self.email = email
+        self.skills = skills
+        self.jobs = jobs
+
+    def reprJSON(self):
+        return dict(name=self.name, email=self.email, skills=self.skills, jobs=self.jobs)
+
+class ProfileScrapingResult:
+    def __init__(self, profile: str, scraping_date: str, profile_information: dict):
+        self.profile = profile
+        self.scraping_date = scraping_date
+        self.profile_information = profile_information
+
+    def reprJSON(self):
+        return dict(profile=self.profile, scraping_date=self.scraping_date, profile_information=self.profile_information)
+
+    def is_error(self):
+        return self.profile_information is None
