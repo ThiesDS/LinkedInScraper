@@ -259,7 +259,7 @@ class ProfileScraper(Thread):
 
             # Collect results for hashtag in data class
             profile_results = ProfileScrapingResult(
-                profile=profile,
+                profile=remove_escapes(profile),
                 scraping_date=scraping_date,
                 profile_information=profile_information.reprJSON()
             )
@@ -376,22 +376,31 @@ class ProfileScraper(Thread):
                 clean_jobs.append(job)
                 
         parsed_jobs = []
-
         for job in clean_jobs:
             company_industry, company_employees = self.scrape_company_details(job[2])
 
-            parsed_jobs.append(
-                Job(
-                    position=job[0],
-                    company=Company(
-                        name=job[1],
-                        industry=company_industry,
-                        employees=company_employees,
-                    ),
-                    location=Location(job[4]),
-                    date_range=job[3]
-                )
+            # Get company information
+            cmp_obj = Company(
+                name=job[1],
+                industry=company_industry,
+                employees=company_employees
             )
+            cmp_dict = cmp_obj.reprJSON()
+            
+            # Get location information
+            loc_obj = location=Location(job[4])
+            loc_dict = loc_obj.reprJSON()
+            
+            # Combine to job object
+            job_obj = Job(position=job[0],
+                company=cmp_dict,
+                location=loc_dict,
+                date_range=job[3]
+            )
+            job_dict = job_obj.reprJSON()
+
+            # Update list
+            parsed_jobs.append(job_dict)
 
         return parsed_jobs
 
