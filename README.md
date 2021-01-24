@@ -60,9 +60,9 @@ docker run -v ${PWD}/input:/input \
            -v ${PWD}/output:/output \
            -e LINKEDIN_EMAIL=${LINKEDIN_EMAIL} \
            -e LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD} \
-           -e SCRAPER=profiles \
+           -e SCRAPER=hashtags \
            -e SCROLL_DEPTH=10 \
-           -e OUTPUT_FORMAT=csv \
+           -e OUTPUT_FORMAT=json \
            --shm-size=2gb \
            linkedinscraper:dev #v0.3
 ```

@@ -56,8 +56,8 @@ class HashtagScraper(Thread):
             raise AuthenticationException()
 
         # Actual work: For each url, scrape posts and store data
-        hashtag_results_saver = HashtagResultsSaver(self.output_format,self.output_folder)
-        scraping_results = hashtag_results_saver.allocate_object()
+        results_saver = ResultsSaver(self.output_format,self.output_folder)
+        scraping_results = results_saver.initialize()
 
         # Loop
         for hashtag in self.hashtags:
@@ -79,10 +79,10 @@ class HashtagScraper(Thread):
             )
 
             # Store results for all hashtags
-            scraping_results = hashtag_results_saver.aggregate(scraping_results, hashtag_results)
+            scraping_results = results_saver.update(scraping_results, hashtag_results)
 
         # Save to file
-        hashtag_results_saver.save_to_file(scraping_results)
+        results_saver.save_to_file(scraping_results,output_file='output_hashtags')
 
         # Closing the Chrome instance
         self.browser.quit()
@@ -242,8 +242,8 @@ class ProfileScraper(Thread):
             raise AuthenticationException()
 
         # Actual work: For each url, scrape posts and store data
-        #profiles_results_saver = ProfilesResultsSaver(self.output_format,self.output_folder)
-        #scraping_results = profiles_results_saver.allocate_object()
+        results_saver = ResultsSaver(self.output_format,self.output_folder)
+        scraping_results = results_saver.initialize()
 
         # Loop
         for profile in self.profiles:
@@ -263,12 +263,12 @@ class ProfileScraper(Thread):
                 scraping_date=scraping_date,
                 profile_information=profile_information.reprJSON()
             )
-            print(profile_results.reprJSON())
+            
             # Store profile results by adding them to scraping results
-            #scraping_results = profile_results_saver.aggregate(scraping_results, profile_results)
+            scraping_results = results_saver.update(scraping_results, profile_results)
 
         # Save to file
-        #profile_results_saver.save_to_file(scraping_results)
+        results_saver.save_to_file(scraping_results,output_file='output_profiles')
 
         # Closing the Chrome instance
         self.browser.quit()

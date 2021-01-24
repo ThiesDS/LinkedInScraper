@@ -84,45 +84,6 @@ def wait_for_loading():
 def wait_for_scrolling():
     time.sleep(1)
 
-class HashtagResultsSaver():
-    """
-        Helper to save hashtag results to a file dependent on the output format
-    """
-
-    def __init__(self, output_format, output_folder):
-        self.output_format = output_format
-        self.output_folder = output_folder
-
-    def allocate_object(self):
-        if self.output_format=='csv':
-            scraping_results = pd.DataFrame()
-        elif self.output_format=='json':
-            scraping_results = {}
-        
-        return scraping_results
-
-    def aggregate(self, scraping_results, hashtag_results):
-        if self.output_format=='csv':
-            # Write results to csv
-            scraping_results = scraping_results.append(hashtag_results.as_dataframe())
-        
-        elif self.output_format=='json':
-            # Write results to json
-            scraping_results = {**scraping_results, **hashtag_results.as_json()}
-
-        else:
-            sys.exit("Output format not specified.")
-
-        return scraping_results
-
-    def save_to_file(self,scraping_results):
-        # Save to file
-        if self.output_format=='csv':
-            scraping_results.to_csv(self.output_folder + 'output_hashtags.csv',index=False)
-        elif self.output_format=='json':
-            with open(self.output_folder + 'output_hashtags.json', 'w') as outfile:
-                json.dump(scraping_results, outfile,indent=4)
-
 def remove_escapes(s):
     """
         Helper to remove escape characters from hashtag.
@@ -200,8 +161,53 @@ class ProfileScrapingResult:
         self.scraping_date = scraping_date
         self.profile_information = profile_information
 
-    def reprJSON(self):
-        return dict(profile=self.profile, scraping_date=self.scraping_date, profile_information=self.profile_information)
+    def as_json(self):
+        d = {}
+        d[self.profile] = {
+            'profile':self.profile, 
+            'scraping_date':self.scraping_date, 
+            'profile_information':self.profile_information
+        }
+        return d
 
     def is_error(self):
         return self.profile_information is None
+
+class ResultsSaver():
+    """
+        Helper to save hashtag results to a file dependent on the output format
+    """
+
+    def __init__(self, output_format, output_folder):
+        self.output_format = output_format
+        self.output_folder = output_folder
+
+    def initialize(self):
+        if self.output_format=='csv':
+            scraping_results = pd.DataFrame()
+        elif self.output_format=='json':
+            scraping_results = {}
+        
+        return scraping_results
+
+    def update(self, scraping_results, results):
+        if self.output_format=='csv':
+            # Write results to csv
+            scraping_results = scraping_results.append(results.as_dataframe())
+        
+        elif self.output_format=='json':
+            # Write results to json
+            scraping_results = {**scraping_results, **results.as_json()}
+
+        else:
+            sys.exit("Output format not specified.")
+
+        return scraping_results
+
+    def save_to_file(self,scraping_results, output_file):
+        # Save to file
+        if self.output_format=='csv':
+            scraping_results.to_csv(self.output_folder + output_file + '.csv',index=False)
+        elif self.output_format=='json':
+            with open(self.output_folder + output_file + '.json', 'w') as outfile:
+                json.dump(scraping_results, outfile,indent=4)
