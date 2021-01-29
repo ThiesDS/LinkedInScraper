@@ -24,8 +24,9 @@ class CannotProceedScrapingException(Exception):
     pass
 
 class Post:
-    def __init__(self, username: str, userdescription: str, published: str, text: str, data_id: str):
+    def __init__(self, username: str, user_profile_id: str, userdescription: str, published: str, text: str, data_id: str):
         self.username = username
+        self.user_profile_id = user_profile_id
         self.userdescription = userdescription
         self.published = published
         self.text = text
@@ -33,6 +34,7 @@ class Post:
 
     def as_json(self):
         return dict(username=self.username,
+                    user_profile_id=self.user_profile_id,
                     userdescription=self.userdescription,
                     published=self.published,
                     text=self.text,
@@ -55,14 +57,14 @@ class HashtagScrapingResult:
 
     def as_dataframe(self):
         # Initialize df. Add columns dynamically, as we only have to change the columns in one place above.
-        cols = ['hashtag','scraping_date'] + ['id'] + list(self.hashtag_posts[list(self.hashtag_posts.keys())[0]].keys())
+        cols = ['hashtag','scraping_date'] + ['post_id'] + list(self.hashtag_posts[list(self.hashtag_posts.keys())[0]].keys())
         df = pd.DataFrame(columns=cols)
 
         # Loop over all hastag urls
         for key in self.hashtag_posts.keys():
             df = df.append({**{'hashtag':self.hashtag},
                             **{'scraping_date':self.scraping_date},
-                            **{'id':key},
+                            **{'post_id':key},
                             **self.hashtag_posts[key]},
                  ignore_index=True)
 
@@ -211,3 +213,9 @@ class ResultsSaver():
         elif self.output_format=='json':
             with open(self.output_folder + output_file + '.json', 'w') as outfile:
                 json.dump(scraping_results, outfile,indent=4)
+
+def get_userprofileid_from_userurl(user_url):
+    """
+        Helper to get the user id from a specified user url.
+    """
+    return user_url.split('/')[-1].split('?')[0]
