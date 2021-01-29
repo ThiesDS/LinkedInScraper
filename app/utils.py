@@ -24,8 +24,9 @@ class CannotProceedScrapingException(Exception):
     pass
 
 class Post:
-    def __init__(self, username: str, userdescription: str, published: str, text: str, data_id: str):
+    def __init__(self, username: str, userid: str, userdescription: str, published: str, text: str, data_id: str):
         self.username = username
+        self.userid = userid
         self.userdescription = userdescription
         self.published = published
         self.text = text
@@ -33,6 +34,7 @@ class Post:
 
     def as_json(self):
         return dict(username=self.username,
+                    userid=self.userid,
                     userdescription=self.userdescription,
                     published=self.published,
                     text=self.text,
@@ -158,3 +160,9 @@ def remove_escapes(s):
     t = s.translate(translator)
 
     return t
+
+def get_userid_from_userurl(user_url):
+    """
+        Helper to get the user id from a specified user url.
+    """
+    return user_url.split('/')[-1].split('?')[0]
