@@ -73,7 +73,7 @@ class HashtagScraper(Thread):
             hashtag_url = 'https://www.linkedin.com/feed/hashtag/?keywords=' + hashtag
 
             # Scrape hashtag posts of this url
-            hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
+            hashtag_follower, hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
 
             # Get date of scraping
             scraping_date = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
@@ -81,6 +81,7 @@ class HashtagScraper(Thread):
             # Collect results for hashtag in data class
             hashtag_results = HashtagScrapingResult(
                 hashtag=remove_escapes(hashtag),
+                hashtag_follower=remove_escapes(hashtag_follower),
                 scraping_date=remove_escapes(scraping_date),
                 hashtag_posts=hashtag_posts
             )
@@ -139,8 +140,9 @@ class HashtagScraper(Thread):
 
         # Scrape posts
         posts = self.scrape_posts()
+        followers = self.scrape_hashtag_followers()
 
-        return posts
+        return followers, posts
 
     def scrape_posts(self):
         """
@@ -192,6 +194,15 @@ class HashtagScraper(Thread):
                 pass
 
         return posts
+    
+    def scrape_hashtag_followers(self):
+        """
+            Scrape number of hashtag followers.
+        """
+
+        hashtag_follower = self.browser.execute_script("return document.getElementById('ember75').children[0].children[1].children[1].textContent")
+
+        return hashtag_follower
 
     def load_full_page(self):
         """

@@ -42,14 +42,16 @@ class Post:
                 )
 
 class HashtagScrapingResult:
-    def __init__(self, hashtag: str, scraping_date: str, hashtag_posts: {str}):
+    def __init__(self, hashtag: str, hashtag_follower: str, scraping_date: str, hashtag_posts: {str}):
         self.hashtag = hashtag
+        self.hashtag_follower = hashtag_follower
         self.scraping_date = scraping_date
         self.hashtag_posts = hashtag_posts
 
     def as_json(self):
         d = {}
         d[self.hashtag] = {
+            'hashtag_follower':self.hashtag_follower,
             'scraping_date':self.scraping_date, 
             'hashtag_posts':self.hashtag_posts
         }
@@ -57,12 +59,13 @@ class HashtagScrapingResult:
 
     def as_dataframe(self):
         # Initialize df. Add columns dynamically, as we only have to change the columns in one place above.
-        cols = ['hashtag','scraping_date'] + ['post_id'] + list(self.hashtag_posts[list(self.hashtag_posts.keys())[0]].keys())
+        cols = ['hashtag','hashtag_follower','scraping_date'] + ['post_id'] + list(self.hashtag_posts[list(self.hashtag_posts.keys())[0]].keys())
         df = pd.DataFrame(columns=cols)
 
         # Loop over all hastag urls
         for key in self.hashtag_posts.keys():
             df = df.append({**{'hashtag':self.hashtag},
+                            **{'hashtag_follower':self.hashtag_follower},
                             **{'scraping_date':self.scraping_date},
                             **{'post_id':key},
                             **self.hashtag_posts[key]},
@@ -159,7 +162,7 @@ def remove_escapes(s):
     # Replace
     t = s.translate(translator)
 
-    return t
+    return t.strip()
 
 def get_userprofileid_from_userurl(user_url):
     """
