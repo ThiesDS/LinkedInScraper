@@ -162,7 +162,7 @@ class HashtagScraper(Thread):
                 post_username = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-actor__name')[0].innerText")
 
                 # Get user id
-                post_userid =  get_userid_from_userurl(self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('app-aware-link')[0].href"))
+                post_userprofileid =  get_userprofileid_from_userurl(self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('app-aware-link')[0].href"))
 
                 # Get user description of post
                 post_userdescription = self.browser.execute_script("return document.querySelectorAll('[data-id]')[" + str(i) + "].getElementsByClassName('feed-shared-actor__description')[0].innerText")
@@ -178,7 +178,7 @@ class HashtagScraper(Thread):
 
                 # Create post object
                 post = Post(username=remove_escapes(post_username),
-                            userid=post_userid,
+                            user_profile_id=post_userprofileid,
                             userdescription=remove_escapes(post_userdescription),
                             published=remove_escapes(post_published),
                             text=remove_escapes(post_text),
