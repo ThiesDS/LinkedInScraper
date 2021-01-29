@@ -57,14 +57,14 @@ class HashtagScrapingResult:
 
     def as_dataframe(self):
         # Initialize df. Add columns dynamically, as we only have to change the columns in one place above.
-        cols = ['hashtag','scraping_date'] + ['id'] + list(self.hashtag_posts[list(self.hashtag_posts.keys())[0]].keys())
+        cols = ['hashtag','scraping_date'] + ['post_id'] + list(self.hashtag_posts[list(self.hashtag_posts.keys())[0]].keys())
         df = pd.DataFrame(columns=cols)
 
         # Loop over all hastag urls
         for key in self.hashtag_posts.keys():
             df = df.append({**{'hashtag':self.hashtag},
                             **{'scraping_date':self.scraping_date},
-                            **{'id':key},
+                            **{'post_id':key},
                             **self.hashtag_posts[key]},
                  ignore_index=True)
 
