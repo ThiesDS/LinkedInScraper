@@ -169,7 +169,7 @@ class ProfileScrapingResult:
     def as_json(self):
         d = {}
         d[self.profile] = {
-            'profile':self.profile, 
+            'profile_id':self.profile, 
             'scraping_date':self.scraping_date, 
             'profile_information':self.profile_information
         }
@@ -181,7 +181,7 @@ class ProfileScrapingResult:
 
         # Initialize
         profiles = []
-        scraping_date = []
+        scraping_dates = []
         names = []
         emails = []
         skills = []
@@ -199,7 +199,7 @@ class ProfileScrapingResult:
         for job in jobs_list:
             # Meta information
             profiles.append(self.profile)
-            scraping_date.append(self.scraping_date)
+            scraping_dates.append(self.scraping_date)
             
             # General information
             names.append(self.profile_information['name'])
@@ -217,7 +217,9 @@ class ProfileScrapingResult:
             date_ranges.append(job['date_range'])
 
         # Combine to long format
-        df = pd.DataFrame({'name':names,
+        df = pd.DataFrame({'profile_id':profiles,
+                           'scraping_date':scraping_dates,
+                           'name':names,
                            'position':positions,
                            'company_name':company_names,
                            'company_industry':company_industrys,
