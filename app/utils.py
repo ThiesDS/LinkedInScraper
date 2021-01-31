@@ -172,6 +172,55 @@ class ProfileScrapingResult:
         }
         return d
 
+    def as_dataframe(self):
+        # Creates flat file in long format for csv export
+        # TODO: Write transform more generic (no manual adjustment of cols)
+
+        # Initialize
+        names = []
+        emails = []
+        skills = []
+        positions = []
+        company_names = []
+        company_industrys = []
+        company_employees = []
+        locations = []
+        location_citys = []
+        location_countrys = []
+        date_ranges = []
+
+        # Loop over jobs
+        jobs_list = self.profile_information['jobs']
+        for job in jobs_list:
+            # General information
+            names.append(self.profile_information['name'])
+            emails.append(self.profile_information['email'])
+            skills.append(', '.join(self.profile_information['skills']))
+            
+            # Job specific
+            positions.append(job['position'])
+            company_names.append(job['company']['name'])
+            company_industrys.append(job['company']['industry'])
+            company_employees.append(job['company']['employees'])
+            locations.append(job['location']['location'])
+            location_citys.append(job['location']['city'])
+            location_countrys.append(job['location']['country'])
+            date_ranges.append(job['date_range'])
+
+        # Combine to long format
+        df = pd.DataFrame({'name':names,
+                           'position':positions,
+                           'company_name':company_names,
+                           'company_industry':company_industrys,
+                           'company_employees':company_employees,
+                           'location':locations,
+                           'location_city':location_citys,
+                           'location_country':location_countrys,
+                           'date_range':date_ranges})
+        
+        return df
+
+
     def is_error(self):
         return self.profile_information is None
 

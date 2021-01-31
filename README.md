@@ -60,11 +60,11 @@ docker run -v ${PWD}/input:/input \
            -v ${PWD}/output:/output \
            -e LINKEDIN_EMAIL=${LINKEDIN_EMAIL} \
            -e LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD} \
-           -e SCRAPER=hashtags \
+           -e SCRAPER=profiles \
            -e SCROLL_DEPTH=10 \
-           -e OUTPUT_FORMAT=json \
+           -e OUTPUT_FORMAT=csv \
            --shm-size=2gb \
-           linkedinscraper:dev #v0.3
+           linkedinscraper:v0.3
 ```
 
 where `SCRAPER` can be one of `hashtags` or `profiles` depending on what you want to scrape (and what input you provided). If `SCRAPER=hashtags`,  `SCROLL_DEPTH` must be provided, otherwise this variable will be ignored. `SCROLL_DEPTH` can be used to controll the amount of posts scraped - this is a preliminary solution. Finally, `OUTPUT_FORMAT` can be one of `csv` or `json` depending on your prefered format of saving the output.

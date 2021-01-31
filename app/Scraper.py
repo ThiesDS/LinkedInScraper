@@ -257,7 +257,7 @@ class ProfileScraper(Thread):
 
             # Scrape profile
             profile_information = self.scrape_profile(profile_url)
-
+            
             # Get date of scraping
             scraping_date = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
 
