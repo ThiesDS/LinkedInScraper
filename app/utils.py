@@ -180,6 +180,8 @@ class ProfileScrapingResult:
         # TODO: Write transform more generic (no manual adjustment of cols)
 
         # Initialize
+        profiles = []
+        scraping_date = []
         names = []
         emails = []
         skills = []
@@ -195,6 +197,10 @@ class ProfileScrapingResult:
         # Loop over jobs
         jobs_list = self.profile_information['jobs']
         for job in jobs_list:
+            # Meta information
+            profiles.append(self.profile)
+            scraping_date.append(self.scraping_date)
+            
             # General information
             names.append(self.profile_information['name'])
             emails.append(self.profile_information['email'])
