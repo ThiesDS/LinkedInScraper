@@ -67,6 +67,6 @@ docker run -v ${PWD}/input:/input \
            linkedinscraper:v0.3
 ```
 
-where `SCRAPER` can be one of `hashtags` or `profiles` depending on what you want to scrape (and what input you provided). If `SCRAPER=hashtags`,  `SCROLL_DEPTH` must be provided, otherwise this variable will be ignored. `SCROLL_DEPTH` can be used to controll the amount of posts scraped - this is a preliminary solution. Finally, `OUTPUT_FORMAT` can be one of `csv` or `json` depending on your prefered format of saving the output.
+where `SCRAPER` can be one of `hashtags` or `profiles` depending on what you want to scrape (and what input you provided). If `SCRAPER=hashtags`,  `SCROLL_DEPTH` must be provided, if `SCRAPER=profiles`, this variable will be ignored. `SCROLL_DEPTH` can be used to controll the amount of posts scraped - this is a preliminary solution. Finally, `OUTPUT_FORMAT` can be one of `csv` or `json` depending on your prefered format of saving the output.
 
 NOTE: The version has to be the same as in the build/pull of the image.
