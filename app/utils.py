@@ -73,14 +73,6 @@ class HashtagScrapingResult:
 
         return df
 
-class ComplexEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if hasattr(obj, 'reprJSON'):
-            return obj.reprJSON()
-        else:
-            return json.JSONEncoder.default(self, obj)
-
-
 def is_url_valid(url):
     regex = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
@@ -91,63 +83,11 @@ def is_url_valid(url):
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     return re.match(regex, url) is not None
 
-
-def get_months_between_dates(date1, date2):
-    if date1 < date2:
-        diff = date2 - date1
-    elif date1 > date2:
-        diff = date1 - date2
-    else:
-        return 0
-
-    return diff.days // 30
-
-
 def wait_for_loading():
     time.sleep(2)
 
-
 def wait_for_scrolling():
     time.sleep(1)
-
-class HashtagResultsSaver():
-    """
-        Helper to save hashtag results to a file dependent on the output format
-    """
-
-    def __init__(self, output_format, output_folder):
-        self.output_format = output_format
-        self.output_folder = output_folder
-
-    def allocate_object(self):
-        if self.output_format=='csv':
-            scraping_results = pd.DataFrame()
-        elif self.output_format=='json':
-            scraping_results = {}
-        
-        return scraping_results
-
-    def aggregate(self, scraping_results, hashtag_results):
-        if self.output_format=='csv':
-            # Write results to csv
-            scraping_results = scraping_results.append(hashtag_results.as_dataframe())
-        
-        elif self.output_format=='json':
-            # Write results to json
-            scraping_results = {**scraping_results, **hashtag_results.as_json()}
-
-        else:
-            sys.exit("Output format not specified.")
-
-        return scraping_results
-
-    def save_to_file(self,scraping_results):
-        # Save to file
-        if self.output_format=='csv':
-            scraping_results.to_csv(self.output_folder + 'output_hashtags.csv',index=False)
-        elif self.output_format=='json':
-            with open(self.output_folder + 'output_hashtags.json', 'w') as outfile:
-                json.dump(scraping_results, outfile,indent=4)
 
 def remove_escapes(s):
     """
@@ -162,7 +102,169 @@ def remove_escapes(s):
     # Replace
     t = s.translate(translator)
 
-    return t.strip()
+    return t
+
+def linkedin_login(browser,linkedin_username,linkedin_password):
+
+    browser.get('https://www.linkedin.com/uas/login')
+
+    username_input = browser.find_element_by_id('username')
+    username_input.send_keys(linkedin_username)
+
+    password_input = browser.find_element_by_id('password')
+    password_input.send_keys(linkedin_password)
+    password_input.submit()
+
+class Location:
+    def __init__(self, location: str):
+        self.location = location
+        self.city = ''
+        self.country = ''
+
+        if ',' in location:
+            try:
+                self.city = location.split(',')[0].strip()
+                self.country = location.split(',')[-1].strip()
+            except:
+                pass
+
+    def reprJSON(self):
+        return dict(location=self.location, city=self.city, country=self.country)
+
+class Company:
+    def __init__(self, name: str, industry: str, employees: str):
+        self.name = name
+        self.industry = industry
+        self.employees = employees
+
+    def reprJSON(self):
+        return dict(name=self.name, industry=self.industry, employees=self.employees)
+
+class Job:
+    def __init__(self, position: str, company: Company, location: Location, date_range: str):
+        self.position = position
+        self.company = company
+        self.location = location
+        self.date_range = date_range
+
+    def reprJSON(self):
+        return dict(position=self.position, company=self.company, location=self.location, date_range=self.date_range)
+
+class Profile:
+    def __init__(self, name: str, email: str, skills: [str], jobs: [Job]):
+        self.name = name
+        self.email = email
+        self.skills = skills
+        self.jobs = jobs
+
+    def reprJSON(self):
+        return dict(name=self.name, email=self.email, skills=self.skills, jobs=self.jobs)
+
+class ProfileScrapingResult:
+    def __init__(self, profile: str, scraping_date: str, profile_information: dict):
+        self.profile = profile
+        self.scraping_date = scraping_date
+        self.profile_information = profile_information
+
+    def as_json(self):
+        d = {}
+        d[self.profile] = {
+            'profile':self.profile, 
+            'scraping_date':self.scraping_date, 
+            'profile_information':self.profile_information
+        }
+        return d
+
+    def as_dataframe(self):
+        # Creates flat file in long format for csv export
+        # TODO: Write transform more generic (no manual adjustment of cols)
+
+        # Initialize
+        names = []
+        emails = []
+        skills = []
+        positions = []
+        company_names = []
+        company_industrys = []
+        company_employees = []
+        locations = []
+        location_citys = []
+        location_countrys = []
+        date_ranges = []
+
+        # Loop over jobs
+        jobs_list = self.profile_information['jobs']
+        for job in jobs_list:
+            # General information
+            names.append(self.profile_information['name'])
+            emails.append(self.profile_information['email'])
+            skills.append(', '.join(self.profile_information['skills']))
+            
+            # Job specific
+            positions.append(job['position'])
+            company_names.append(job['company']['name'])
+            company_industrys.append(job['company']['industry'])
+            company_employees.append(job['company']['employees'])
+            locations.append(job['location']['location'])
+            location_citys.append(job['location']['city'])
+            location_countrys.append(job['location']['country'])
+            date_ranges.append(job['date_range'])
+
+        # Combine to long format
+        df = pd.DataFrame({'name':names,
+                           'position':positions,
+                           'company_name':company_names,
+                           'company_industry':company_industrys,
+                           'company_employees':company_employees,
+                           'location':locations,
+                           'location_city':location_citys,
+                           'location_country':location_countrys,
+                           'date_range':date_ranges})
+        
+        return df
+
+
+    def is_error(self):
+        return self.profile_information is None
+
+class ResultsSaver():
+    """
+        Helper to save hashtag results to a file dependent on the output format
+    """
+
+    def __init__(self, output_format, output_folder):
+        self.output_format = output_format
+        self.output_folder = output_folder
+
+    def initialize(self):
+        if self.output_format=='csv':
+            scraping_results = pd.DataFrame()
+        elif self.output_format=='json':
+            scraping_results = {}
+        
+        return scraping_results
+
+    def update(self, scraping_results, results):
+        if self.output_format=='csv':
+            # Write results to csv
+            scraping_results = scraping_results.append(results.as_dataframe())
+        
+        elif self.output_format=='json':
+            # Write results to json
+            scraping_results = {**scraping_results, **results.as_json()}
+
+        else:
+            sys.exit("Output format not specified.")
+
+        return scraping_results
+
+    def save_to_file(self,scraping_results, output_file):
+        # Save to file
+        if self.output_format=='csv':
+            scraping_results.to_csv(self.output_folder + output_file + '.csv',index=False)
+        elif self.output_format=='json':
+            with open(self.output_folder + output_file + '.json', 'w') as outfile:
+                json.dump(scraping_results, outfile,indent=4)
 
 def get_userprofileid_from_userurl(user_url):
     """

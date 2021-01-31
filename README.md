@@ -60,12 +60,13 @@ docker run -v ${PWD}/input:/input \
            -v ${PWD}/output:/output \
            -e LINKEDIN_EMAIL=${LINKEDIN_EMAIL} \
            -e LINKEDIN_PASSWORD=${LINKEDIN_PASSWORD} \
-           -e SCROLL_DEPTH=50 \
-           -e OUTPUT_FORMAT=csv \
+           -e SCRAPER=hashtags \
+           -e SCROLL_DEPTH=10 \
+           -e OUTPUT_FORMAT=json \
            --shm-size=2gb \
            linkedinscraper:v0.3
 ```
 
-where `OUTPUT_FORMAT` can be one of `csv` of `json` and `SCROLL_DEPTH` can be used to controll the amount of posts scraped - this is a preliminary solution. 
+where `SCRAPER` can be one of `hashtags` or `profiles` depending on what you want to scrape (and what input you provided). If `SCRAPER=hashtags`,  `SCROLL_DEPTH` must be provided, if `SCRAPER=profiles`, this variable will be ignored. `SCROLL_DEPTH` can be used to controll the amount of posts scraped - this is a preliminary solution. Finally, `OUTPUT_FORMAT` can be one of `csv` or `json` depending on your prefered format of saving the output.
 
 NOTE: The version has to be the same as in the build/pull of the image.
