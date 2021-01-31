@@ -276,7 +276,7 @@ class ProfileScraper(Thread):
             profile_results = ProfileScrapingResult(
                 profile=remove_escapes(profile),
                 scraping_date=scraping_date,
-                profile_information=profile_information.reprJSON()
+                profile_information=profile_information.as_json()
             )
             
             # Store profile results by adding them to scraping results
@@ -323,6 +323,7 @@ class ProfileScraper(Thread):
 
         # SCRAPING
         profile_name = self.scrape_profile_name()
+        current_employer = self.scrape_top_card_experience_list_first_item()
         email = self.scrape_email()
         skills = self.scrape_skills()
         jobs = self.scrape_jobs()  # keep as last scraping
@@ -331,12 +332,17 @@ class ProfileScraper(Thread):
             name=profile_name,
             email=email,
             skills=skills,
+            current_employer = current_employer,
             jobs=jobs
         )
 
     def scrape_profile_name(self):
         return self.browser.execute_script(
             "return document.getElementsByClassName('pv-top-card--list')[0].children[0].innerText")
+
+    def scrape_top_card_experience_list_first_item(self):
+        return self.browser.execute_script(
+            "return document.getElementsByClassName('pv-top-card--experience-list')[0].children[0].children[0].children[1].innerText")
 
     def scrape_email(self):
         # > click on 'Contact info' link on the page

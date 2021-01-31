@@ -151,14 +151,15 @@ class Job:
         return dict(position=self.position, company=self.company, location=self.location, date_range=self.date_range)
 
 class Profile:
-    def __init__(self, name: str, email: str, skills: [str], jobs: [Job]):
+    def __init__(self, name: str, email: str, skills: [str], current_employer: str, jobs: [Job]):
         self.name = name
         self.email = email
         self.skills = skills
+        self.current_employer = current_employer
         self.jobs = jobs
 
-    def reprJSON(self):
-        return dict(name=self.name, email=self.email, skills=self.skills, jobs=self.jobs)
+    def as_json(self):
+        return dict(name=self.name, email=self.email, skills=self.skills, current_employer=self.current_employer, jobs=self.jobs)
 
 class ProfileScrapingResult:
     def __init__(self, profile: str, scraping_date: str, profile_information: dict):
@@ -185,6 +186,7 @@ class ProfileScrapingResult:
         names = []
         emails = []
         skills = []
+        current_employers = []
         positions = []
         company_names = []
         company_industrys = []
@@ -205,6 +207,7 @@ class ProfileScrapingResult:
             names.append(self.profile_information['name'])
             emails.append(self.profile_information['email'])
             skills.append(', '.join(self.profile_information['skills']))
+            current_employers.append(self.profile_information['current_employer'])
             
             # Job specific
             positions.append(job['position'])
@@ -220,14 +223,18 @@ class ProfileScrapingResult:
         df = pd.DataFrame({'profile_id':profiles,
                            'scraping_date':scraping_dates,
                            'name':names,
-                           'position':positions,
-                           'company_name':company_names,
-                           'company_industry':company_industrys,
-                           'company_employees':company_employees,
-                           'location':locations,
-                           'location_city':location_citys,
-                           'location_country':location_countrys,
-                           'date_range':date_ranges})
+                           'email':emails,
+                           'skills':skills,
+                           'current_employer':current_employers,
+                           'job_position':positions,
+                           'job_date_range':date_ranges,
+                           'job_company_name':company_names,
+                           'job_company_industry':company_industrys,
+                           'job_company_employees':company_employees,
+                           'job_location':locations,
+                           'job_location_city':location_citys,
+                           'job_location_country':location_countrys
+                           })
         
         return df
 
