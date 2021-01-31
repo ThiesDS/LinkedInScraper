@@ -64,7 +64,7 @@ class HashtagScraper(Thread):
 
             # Create hashtag url
             hashtag_url = 'https://www.linkedin.com/feed/hashtag/?keywords=' + hashtag
-
+            print(hashtag)
             # Scrape hashtag posts of this url
             hashtag_follower, hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
 
@@ -192,8 +192,8 @@ class HashtagScraper(Thread):
         """
             Scrape number of hashtag followers.
         """
-
-        hashtag_follower = self.browser.execute_script("return document.getElementById('ember75').children[0].children[1].children[1].textContent")
+        
+        hashtag_follower = self.browser.execute_script("return document.getElementsByClassName('core-rail')[0].children[0].children[0].children[0].children[1].children[1].innerText")
 
         return hashtag_follower
 
