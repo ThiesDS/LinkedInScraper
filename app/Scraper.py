@@ -64,7 +64,7 @@ class HashtagScraper(Thread):
 
             # Create hashtag url
             hashtag_url = 'https://www.linkedin.com/feed/hashtag/?keywords=' + hashtag
-            print(hashtag)
+ 
             # Scrape hashtag posts of this url
             hashtag_follower, hashtag_posts = self.scrape_hashtag_posts(hashtag_url)
 
