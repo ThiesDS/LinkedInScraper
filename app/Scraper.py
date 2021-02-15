@@ -82,8 +82,8 @@ class HashtagScraper(Thread):
             # Store results for all hashtags
             scraping_results = results_saver.update(scraping_results, hashtag_results)
 
-        # Save to file
-        results_saver.save_to_file(scraping_results,output_file='output_hashtags')
+            # Save to file
+            results_saver.save_to_file(scraping_results,output_file='output_hashtags')
 
         # Closing the Chrome instance
         self.browser.quit()
@@ -265,7 +265,7 @@ class ProfileScraper(Thread):
 
             # Create profile url
             profile_url = 'https://www.linkedin.com/in/' + remove_escapes(profile) + '/'
-
+            
             # Scrape profile
             profile_information = self.scrape_profile(profile_url)
             
@@ -282,8 +282,8 @@ class ProfileScraper(Thread):
             # Store profile results by adding them to scraping results
             scraping_results = results_saver.update(scraping_results, profile_results)
 
-        # Save to file
-        results_saver.save_to_file(scraping_results,output_file='output_profiles')
+            # Save to file
+            results_saver.save_to_file(scraping_results,output_file='output_profiles')
 
         # Closing the Chrome instance
         self.browser.quit()
@@ -323,9 +323,14 @@ class ProfileScraper(Thread):
 
         # SCRAPING
         profile_name = self.scrape_profile_name()
-        current_employer = self.scrape_top_card_experience_list_first_item()
         email = self.scrape_email()
         skills = self.scrape_skills()
+        # - As not all of the profiles have a top card item, try catch error
+        try:
+            current_employer = self.scrape_top_card_experience_list_first_item()
+        except:
+            current_employer = ""
+            pass
         jobs = self.scrape_jobs()  # keep as last scraping
 
         return Profile(
